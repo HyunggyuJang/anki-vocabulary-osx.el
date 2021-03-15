@@ -162,12 +162,42 @@ It returns an alist like
     `((expression . ,expression)
       (glossary . ,glossary)
       (phonetic . ,phonetic))"
-  (let ((queried (osx-dictionary--search word))
-        (separator " | ")
+  (let ((queried (osx-dictionary--search word)))
+    (cond
+     ((string-empty-p queried)
+      (user-error "Queried word isn't an entry of OSX-Dictionary"))
+     ((string-match-p "\\cj" queried)
+      (anki-vocabulary--parse-japanese-dictionary queried))
+     ((string-match-p "[a-zA-Z]" queried)
+      (anki-vocabulary--parse-english-dictionary queried))
+     (t
+      (user-error "Cannot parse given dictionary output: Unknown language")))))
+
+(defun anki-vocabulary--parse-japanese-dictionary (queried)
+  "Parse QUERIED from Japanese dictionary."
+  (let ((starter " 【")
+        (end "】")
         expression glossary phonetic
         mb me)
-    (if (string-empty-p queried)
-        (user-error "Queried word isn't an entry of OSX-Dictionary"))
+    (string-match starter queried)
+    (setq mb (match-beginning 0)
+          me (match-end 0))
+    (setq expression (substring queried 0 mb))
+    (setq queried (substring queried me))
+    (string-match end queried)
+    (setq mb (match-beginning 0)
+          me (match-end 0))
+    (setq phonetic (substring queried 0 mb))
+    (setq glossary (substring queried me))
+    `((expression . ,expression)
+      (glossary . ,glossary)
+      (phonetic . ,phonetic))))
+
+(defun anki-vocabulary--parse-english-dictionary (queried)
+  "Parse QUERIED from English dictionary."
+  (let ((separator " | ")
+        expression glossary phonetic
+        mb me)
     (string-match separator queried)
     (setq mb (match-beginning 0)
           me (match-end 0))
