@@ -42,6 +42,7 @@
 (require 'cl-lib)
 (require 'subr-x)
 (require 'anki-connect)
+(require 'osx-dictionary)
 (declare-function pdf-view-active-region-text "ext:pdf-view" ())
 (declare-function pdf-view-assert-active-region "ext:pdf-view" () t)
 
@@ -74,7 +75,7 @@
 The functions should accept those arguments:
 + expression(单词)
 + sentence(单词所在句子)
-+ sentence_bold(单词所在句子,单词加粗)
++ sentence_clozed(单词所在句子,单词加粗)
 + glossary(单词释义)
 + phonetic(音标)"
   :type 'hook)
@@ -85,7 +86,7 @@ The functions should accept those arguments:
 The functions should accept those arguments:
 + expression(单词)
 + sentence(单词所在句子)
-+ sentence_bold(单词所在句子,单词加粗)
++ sentence_clozed(单词所在句子,单词加粗)
 + glossary(单词释义)
 + phonetic(音标)"
   :type 'hook)
@@ -101,7 +102,7 @@ The functions should accept those arguments:
     (setq anki-vocabulary-field-alist nil)
     (setq anki-vocabulary-audio-fileds nil)
     (let* ((fields (anki-connect-model-field-names anki-vocabulary-model-name))
-           (elements '("${expression:单词}" "${glossary:释义}" "${phonetic:音标}" "${sentence:原文例句}" "${sentence_bold:标粗的原文例句}" "${translation:翻译例句}" "${sound:发声}" "SKIP")))
+           (elements '("${expression:单词}" "${glossary:释义}" "${phonetic:音标}" "${sentence:原文例句}" "${sentence_clozed:标粗的原文例句}" "${translation:翻译例句}" "${sound:发声}" "SKIP")))
       (dolist (field fields)
         (let* ((prompt (format "%s" field))
                (element (completing-read prompt elements)))
@@ -218,14 +219,16 @@ It returns an alist like
   (interactive)
   (let* ((sentence (or sentence (anki-vocabulary--get-text))) ; 原句
          (word (or word  (anki-vocabulary--select-word-in-string sentence (anki-vocabulary--get-word))))
-         (sentence_bold (replace-regexp-in-string (concat "\\b" (regexp-quote word) "\\b")
+         (sentence_clozed (replace-regexp-in-string (concat "\\b" (regexp-quote word) "\\b")
                                                   (lambda (word)
-                                                    (format "<b>%s</b>" word))
+                                                    (format "{{c1::%s}}" word))
                                                   sentence)) ; 粗体标记的句子
          (content (funcall anki-vocabulary-word-searcher word))
          (expression (or (cdr (assoc 'expression content))
                          ""))           ; 单词
-         (glossary (or (cdr (assoc 'glossary content))
+         (glossary (or (replace-regexp-in-string
+                        "\\(\\\\\\\\\\)?[ \t]*\n"
+                        "<br>" (cdr (assoc 'glossary content)))
                        ""))
          (phonetic (or (cdr (assoc 'phonetic content))
                        ""))             ; 音标
@@ -233,16 +236,16 @@ It returns an alist like
                  (glossary:释义 . ,glossary)
                  (phonetic:音标 . ,phonetic)
                  (sentence:原文例句 . ,sentence)
-                 (sentence_bold:标粗的原文例句 . ,sentence_bold)))
+                 (sentence_clozed:标粗的原文例句 . ,sentence_clozed)))
          (fileds (mapcar #'car anki-vocabulary-field-alist))
          (elements (mapcar #'cdr anki-vocabulary-field-alist))
          (values (mapcar (lambda (e)
                            (s-format e 'aget data))
                          elements))
          (fields (cl-mapcar #'cons fileds values)))
-    (run-hook-with-args 'anki-vocabulary-before-addnote-functions expression sentence sentence_bold glossary phonetic)
+    (run-hook-with-args 'anki-vocabulary-before-addnote-functions expression sentence sentence_clozed glossary phonetic)
     (anki-connect-add-note anki-vocabulary-deck-name anki-vocabulary-model-name fields)
-    (run-hook-with-args 'anki-vocabulary-after-addnote-functions expression sentence sentence_bold glossary phonetic)))
+    (run-hook-with-args 'anki-vocabulary-after-addnote-functions expression sentence sentence_clozed glossary phonetic)))
 
 (provide 'anki-vocabulary-osx)
 
