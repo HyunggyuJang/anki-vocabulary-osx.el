@@ -156,6 +156,14 @@ The function should return an alist like
       (phonetic . ,phonetic))"
   :type 'function)
 
+(defsubst anki-vocabulary--english? (char)
+  "Test whether given CHAR is an English character."
+  (eq (char-charset char) 'ascii))
+
+(defsubst anki-vocabulary--japanese? (char)
+  "Test whether given CHAR is a Japenese character."
+  (eq (char-charset char) 'unicode))
+
 (defun anki-vocabulary--word-searcher-osx (word)
   "Search WORD using youdao.
 
@@ -164,14 +172,14 @@ It returns an alist like
       (glossary . ,glossary)
       (phonetic . ,phonetic))"
   (let ((queried (osx-dictionary--search word)))
-    (cond
-     ((string-empty-p queried)
-      (user-error "Queried word isn't an entry of OSX-Dictionary"))
-     ((string-match-p "\\cj" queried)
+    (if (string-empty-p queried)
+        (user-error "Queried word isn't an entry of OSX-Dictionary"))
+    (pcase (aref queried 0)
+     ((pred anki-vocabulary--japanese?)
       (anki-vocabulary--parse-japanese-dictionary queried))
-     ((string-match-p "[a-zA-Z]" queried)
+     ((pred anki-vocabulary--english?)
       (anki-vocabulary--parse-english-dictionary queried))
-     (t
+     (_
       (user-error "Cannot parse given dictionary output: Unknown language")))))
 
 (defun anki-vocabulary--parse-japanese-dictionary (queried)
