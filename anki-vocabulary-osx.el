@@ -158,11 +158,11 @@ The function should return an alist like
 
 (defsubst anki-vocabulary--english? (char)
   "Test whether given CHAR is an English character."
-  (eq (char-charset char) 'ascii))
+  (string-match-p "[a-zA-Z]" char))
 
 (defsubst anki-vocabulary--japanese? (char)
   "Test whether given CHAR is a Japenese character."
-  (eq (char-charset char) 'unicode))
+  (string-match-p "\\cj" char))
 
 (defun anki-vocabulary--word-searcher-osx (word)
   "Search WORD using youdao.
@@ -174,7 +174,7 @@ It returns an alist like
   (let ((queried (osx-dictionary--search word)))
     (if (string-empty-p queried)
         (user-error "Queried word isn't an entry of OSX-Dictionary"))
-    (pcase (aref queried 0)
+    (pcase (substring queried 0 1)
      ((pred anki-vocabulary--japanese?)
       (anki-vocabulary--parse-japanese-dictionary queried))
      ((pred anki-vocabulary--english?)
