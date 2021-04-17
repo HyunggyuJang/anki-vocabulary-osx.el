@@ -161,8 +161,12 @@ The function should return an alist like
   (string-match-p "[a-zA-Z]" char))
 
 (defsubst anki-vocabulary--japanese? (char)
-  "Test whether given CHAR is a Japenese character."
+  "Test whether given CHAR is a Japanese character."
   (string-match-p "\\cj" char))
+
+(defsubst anki-vocabulary--korean? (char)
+  "Test whether given CHAR is a Korean character."
+  (string-match-p "[가-힣]" char))
 
 (defun anki-vocabulary--word-searcher-osx (word)
   "Search WORD using youdao.
@@ -179,8 +183,30 @@ It returns an alist like
       (anki-vocabulary--parse-japanese-dictionary queried))
      ((pred anki-vocabulary--english?)
       (anki-vocabulary--parse-english-dictionary queried))
+     ((pred anki-vocabulary--korean?)
+      (anki-vocabulary--parse-korean-dictionary queried))
      (_
       (user-error "Cannot parse given dictionary output: Unknown language")))))
+
+(defun anki-vocabulary--parse-korean-dictionary (queried)
+  "Parse QUERIED from Korean dictionary."
+  (let ((eng "[a-zA-Z]")
+        (separator ";")
+        expression glossary phonetic
+        mb me)
+    (string-match eng queried)
+    (setq mb (match-beginning 0)
+          me (match-end 0))
+    (setq expression (substring queried 0 mb))
+    (setq queried (substring queried (1- me)))
+    (string-match separator queried)
+    (setq mb (match-beginning 0)
+          me (match-end 0))
+    (setq phonetic (substring queried 0 mb))
+    (setq glossary (substring queried me))
+    `((expression . ,expression)
+      (glossary . ,glossary)
+      (phonetic . ,phonetic))))
 
 (defun anki-vocabulary--parse-japanese-dictionary (queried)
   "Parse QUERIED from Japanese dictionary."
