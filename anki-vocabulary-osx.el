@@ -228,10 +228,14 @@ It returns an alist like
       (glossary . ,glossary)
       (phonetic . ,phonetic))))
 
+(defcustom anki-vocabulary-keywords (caar osx-dictionary-mode-font-lock-keywords)
+  "Keywords for English dictionary contents."
+  :type 'string)
+
 (defun anki-vocabulary--parse-english-dictionary (queried)
   "Parse QUERIED from English dictionary."
   (let ((separator " | ")
-        (keywords (caar osx-dictionary-mode-font-lock-keywords))
+        (keywords anki-vocabulary-keywords)
         (word-limit 50)
         expression glossary phonetic
         mb me)
@@ -268,8 +272,13 @@ It returns an alist like
          (expression (or (cdr (assoc 'expression content))
                          ""))           ; 单词
          (glossary (or (replace-regexp-in-string
-                        "\\(\\\\\\\\\\)?[ \t]*\n"
-                        "<br>" (cdr (assoc 'glossary content)))
+                        "\\(\\\\\\\\\\)?\\([ \t]\\|<br>\\)*\n"
+                        "<br>"
+                        (replace-regexp-in-string
+                         anki-vocabulary-keywords
+                         (lambda (keyword)
+                           (format "<b>%s</b><br>" keyword))
+                         (cdr (assoc 'glossary content))))
                        ""))
          (phonetic (or (cdr (assoc 'phonetic content))
                        ""))             ; 音标
