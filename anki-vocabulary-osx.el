@@ -277,7 +277,7 @@ It returns an alist like
                         (replace-regexp-in-string
                          anki-vocabulary-keywords
                          (lambda (keyword)
-                           (format "<b>%s</b><br>" keyword))
+                           (format "<br><b>%s</b><br>" keyword))
                          (cdr (assoc 'glossary content))))
                        ""))
          (phonetic (or (cdr (assoc 'phonetic content))
