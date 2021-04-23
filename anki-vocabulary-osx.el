@@ -271,14 +271,16 @@ It returns an alist like
          (content (funcall anki-vocabulary-word-searcher word))
          (expression (or (cdr (assoc 'expression content))
                          ""))           ; 单词
-         (glossary (or (replace-regexp-in-string
-                        "\\(\\\\\\\\\\)?\\([ \t]\\|<br>\\)*\n"
+         (glossary (or (string-remove-prefix
+                        "<br>"
+                        (replace-regexp-in-string
+                        "\\([ \t]\\|<br>\\)*\n"
                         "<br>"
                         (replace-regexp-in-string
                          anki-vocabulary-keywords
                          (lambda (keyword)
                            (format "<br><b>%s</b><br>" keyword))
-                         (cdr (assoc 'glossary content))))
+                         (cdr (assoc 'glossary content)))))
                        ""))
          (phonetic (or (cdr (assoc 'phonetic content))
                        ""))             ; 音标
