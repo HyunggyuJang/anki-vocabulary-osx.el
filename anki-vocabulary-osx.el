@@ -236,7 +236,7 @@ It returns an alist like
   "Parse QUERIED from English dictionary."
   (let ((separator " | ")
         (keywords anki-vocabulary-keywords)
-        (word-limit 50)
+        (word-limit (min 50 (length queried)))
         expression glossary phonetic
         mb me)
     (if (null (string-match separator (substring queried 0 word-limit)))
