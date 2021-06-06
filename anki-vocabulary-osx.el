@@ -44,8 +44,6 @@
 (require 'anki-connect)
 (require 'osx-dictionary)
 (declare-function pdf-view-active-region-text "ext:pdf-view" ())
-(declare-function pdf-view-assert-active-region "ext:pdf-view" () t)
-
 
 (defgroup anki-vocabulary nil
   ""
@@ -122,7 +120,6 @@ The functions should accept those arguments:
 
 (defun anki-vocabulary--get-pdf-text ()
   "Get the text in pdf mode."
-  (pdf-view-assert-active-region)
   (let* ((txt (pdf-view-active-region-text))
          (txt (string-join txt "\n")))
     (replace-regexp-in-string "[\r\n]+" " " txt)))
