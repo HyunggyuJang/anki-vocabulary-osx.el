@@ -51,7 +51,7 @@
   ""
   :prefix "anki-vocabulary"
   :group 'tools
-  :link '(url-link :tag "Github" "https://github.com/lujun9972/anki-vocabulary.el"))
+  :link '(url-link :tag "Github" "https://github.com/HyunggyuJang/anki-vocabulary-osx.el"))
 
 (defcustom anki-vocabulary-deck-name ""
   "Which deck would the word stored."
@@ -122,9 +122,6 @@ The functions should accept those arguments:
 
 (defun anki-vocabulary--get-pdf-text ()
   "Get the text in pdf mode."
-  ;; (if (package-installed-p 'pdf-tools)
-  ;;     (require 'pdf-view)
-  ;;   (error "`pdf-tools` is required!"))
   (pdf-view-assert-active-region)
   (let* ((txt (pdf-view-active-region-text))
          (txt (string-join txt "\n")))
