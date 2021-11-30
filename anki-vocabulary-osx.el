@@ -263,7 +263,13 @@ It returns an alist like
                                                     (format "{{c1::%s}}" word))
                                                   sentence)) ; 粗体标记的句子
          (content (funcall anki-vocabulary-word-searcher word))
-         (expression (or (cdr (assoc 'expression content))
+         (expression (or (cdr
+                          (assoc
+                           'expression
+                           (replace-regexp-in-string
+                            "·"
+                            ""
+                            content)))
                          ""))           ; 单词
          (glossary (or (string-remove-prefix
                         "<br>"
